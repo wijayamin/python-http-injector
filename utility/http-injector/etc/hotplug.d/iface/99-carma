@@ -1,0 +1,50 @@
+#!/bin/sh
+
+
+. /usr/share/libubox/jshn.sh
+
+if [ "$ACTION" = ifup -a "$INTERFACE" = "3g" ]; then
+	# madplay /etc/carma/tts/interface-3g-connected.mp3
+	connection_type="$(uci get carma.@network[0].type)"
+
+	if [ "$connection_type" = "inject" ]; then
+
+		payload="$(uci get carma.@network[1].payload)"
+		tunnel="$(uci get carma.@network[1].tunnel)"
+		listen="$(uci get carma.@network[1].listen)"
+		ip="$(ifconfig 3g-3g | grep 'inet addr:' | cut -d: -f2 | awk '{ print $1}')"
+
+		json_load "$(cat /etc/carma/payload/$payload)"
+		json_select	proxy
+		json_get_var proxy host
+
+		route del $proxy
+		route add $proxy gateway $ip
+
+		sleep 1
+
+		kill -9 "$(pidof http-injector)"
+
+		sleep 1
+
+		/usr/bin/http-injector /etc/carma/payload/$payload -l $listen &
+
+		sleep 1
+
+		if [ "$tunnel" = "openvpn" ]; then
+
+			kill -9 "$(pidof openvpn)"
+
+			sleep 1
+
+			config="$(uci get carma.@tunnel[0].config)"
+
+			openvpn --config /etc/carma/openvpn/$config --http-proxy 127.0.0.1 $listen --http-proxy-retry --auth-user-pass /etc/carma/openvpn/${config%.ovpn}.login --daemon &
+		fi
+
+	fi
+fi
+
+# if [ "$ACTION" = ifdown -a "$INTERFACE" = "3g" ]; then
+# 	touch /tmp/lol
+# fi

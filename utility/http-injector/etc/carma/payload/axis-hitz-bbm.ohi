@@ -1,0 +1,1 @@
+{"buffer": 32768, "info": "AIXS BUG BBM Limit 1GB 1hari by master Carma", "payload": "GET http://download.cdn.oly-ap.blackberry.com/ HTTP/1.1[crlf]GET http:// download.cdn.oly-ap.blackberry.com[crlf]Connection: Keep-Alive[crlf][cr][crlf][split]CONNECT [host_port] [protocol][crlf]Content-Length: 9999999999[crlf][crlf]", "proxy": {"host": "10.4.0.10", "port": 8080}}
